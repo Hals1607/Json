@@ -1,0 +1,45 @@
+import UIKit
+import Alamofire
+import SDWebImage
+
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    
+
+    @IBOutlet weak var tblview: UITableView!
+    var listOrder:NSArray = NSArray()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+//        tblview.delegate = self
+  //    tblview.dataSource = self
+        let urlString = "https://api.github.com/users/hadley/orgs"
+        
+        Alamofire.request(urlString, method: .get, parameters: nil, encoding: JSONEncoding.default)
+            .downloadProgress(queue: DispatchQueue.global(qos: .utility)) { progress in
+                print("Progress : \(progress.fractionCompleted)")
+                
+        }
+            .responseJSON { response in
+                print(response.value)
+                print("URL: \(((response.value as! NSArray)[0] as! NSDictionary).value(forKey: "avatar_url") as! NSString)")
+                self.listOrder = response.value as! NSArray
+                self.tblview.reloadData()
+    }
+}
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return listOrder.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell") as! TableViewCell
+        let imgURL: String = (listOrder[indexPath.row] as! NSDictionary).value(forKey: "avatar_url")as! String
+        let iurl = URL(string: imgURL)
+                cell.img.sd_setImage(with: iurl, placeholderImage: UIImage.init(named: "Placeholder"), options: SDWebImageOptions.cacheMemoryOnly, completed: nil)
+        
+        return cell
+    }
+    
+}
